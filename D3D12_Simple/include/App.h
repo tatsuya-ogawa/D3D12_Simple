@@ -15,6 +15,17 @@
 #include <asdxRef.h>
 
 
+//-------------------------------------------------------------------------------------------------
+// Linker
+//-------------------------------------------------------------------------------------------------
+#pragma comment( lib, "d3d12.lib" )
+#pragma comment( lib, "d3dcompiler.lib" )
+#pragma comment( lib, "dxgi.lib" )
+#pragma comment( lib, "dxguid.lib" )
+#pragma comment( lib, "winmm.lib" )
+#pragma comment( lib, "comctl32.lib" )
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // App class
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,11 +72,24 @@ protected:
     virtual void OnFrameRender();
     virtual void OnResize();
 
+    void SetResourceBarrier( ID3D12GraphicsCommandList* pCmdList, ID3D12Resource* pResource, UINT stateBefore, UINT stateAfter );
+
 private:
     //=============================================================================================
     // private variables.
     //=============================================================================================
-
+    asdx::RefPtr<ID3D12Device>              m_Device;
+    asdx::RefPtr<ID3D12CommandAllocator>    m_CmdAllocator;
+    asdx::RefPtr<ID3D12CommandQueue>        m_CmdQueue;
+    asdx::RefPtr<ID3D12GraphicsCommandList> m_GfxCmdList;
+    asdx::RefPtr<IDXGIFactory>              m_Factory;
+    asdx::RefPtr<IDXGISwapChain>            m_SwapChain;
+    asdx::RefPtr<ID3D12DescriptorHeap>      m_DescriptorHeap;
+    asdx::RefPtr<ID3D12RootSignature>       m_RootSignature;
+    asdx::RefPtr<ID3D12Resource>            m_ColorTarget;
+    asdx::RefPtr<ID3D12Resource>            m_DepthStencilTarget;
+    D3D12_VIEWPORT                          m_Viewport;
+    D3D12_CPU_DESCRIPTOR_HANDLE             m_ColorTargetHandle;
 
     //=============================================================================================
     // private methods.
