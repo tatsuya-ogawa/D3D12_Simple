@@ -224,7 +224,7 @@ bool App::InitD3D()
         desc.SampleDesc.Quality                 = 0;
         desc.Windowed                           = TRUE;
 
-        hr = m_Factory->CreateSwapChain( m_Device.GetPtr(), &desc, m_SwapChain.GetAddress() );
+        hr = m_Factory->CreateSwapChain( m_CmdQueue.GetPtr(), &desc, m_SwapChain.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : IDXGIFactory::CreateSwapChain() Failed." );
@@ -299,6 +299,15 @@ bool App::InitD3D()
 
         m_ColorTargetHandle = m_DescriptorHeap->GetCPUDescriptorHandleForHeapStart();
         m_Device->CreateRenderTargetView( m_ColorTarget.GetPtr(), nullptr, m_ColorTargetHandle );
+    }
+
+    {
+        hr = m_Device->CreateFence( 0, D3D12_FENCE_MISC_NONE, IID_ID3D12Fence, (void**)m_Factory.GetAddress() );
+        if ( FAILED( hr ) )
+        {
+            ELOG( "Error : ID3D12Device::CreateFence() Failed." );
+            return false;
+        }
     }
 
     {

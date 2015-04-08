@@ -88,6 +88,7 @@ private:
     asdx::RefPtr<ID3D12RootSignature>       m_RootSignature;
     asdx::RefPtr<ID3D12Resource>            m_ColorTarget;
     asdx::RefPtr<ID3D12Resource>            m_DepthStencilTarget;
+    asdx::RefPtr<ID3D12Fence>               m_Fence;
     D3D12_VIEWPORT                          m_Viewport;
     D3D12_CPU_DESCRIPTOR_HANDLE             m_ColorTargetHandle;
 
