@@ -86,7 +86,6 @@ private:
     asdx::RefPtr<IDXGIFactory>              m_Factory;                  //!< DXGIファクトリーです.
     asdx::RefPtr<IDXGISwapChain>            m_SwapChain;                //!< スワップチェインです.
     asdx::RefPtr<ID3D12DescriptorHeap>      m_DescriptorHeap;           //!< デスクリプターヒープです.
-    asdx::RefPtr<ID3D12RootSignature>       m_RootSignature;            //!< ルートシグネチャです.
     asdx::RefPtr<ID3D12Resource>            m_ColorTarget;              //!< カラーターゲットのリソースです.
     asdx::RefPtr<ID3D12Fence>               m_Fence;                    //!< フェンスです.
     D3D12_CPU_DESCRIPTOR_HANDLE             m_ColorTargetHandle;        //!< カラーターゲットのハンドルです.

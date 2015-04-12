@@ -304,33 +304,6 @@ bool App::InitD3D()
         }
     }
 
-    // ルートシグネチャの生成.
-    {
-        auto rootSig = D3D12_ROOT_SIGNATURE();
-        rootSig.Flags = D3D12_ROOT_SIGNATURE_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-        asdx::RefPtr<ID3DBlob> rootBlob;
-        asdx::RefPtr<ID3DBlob> errorBlob;
-
-        hr = D3D12SerializeRootSignature( &rootSig, D3D_ROOT_SIGNATURE_V1, rootBlob.GetAddress(), errorBlob.GetAddress() );
-        if ( FAILED( hr ) )
-        {
-            ELOG( "Error : D3D12SerializeRootSignature() Failed." );
-            return false;
-        }
-
-        hr = m_Device->CreateRootSignature(
-            1,
-            rootBlob->GetBufferPointer(),
-            rootBlob->GetBufferSize(),
-            IID_ID3D12RootSignature,
-            (void**)m_RootSignature.GetAddress() );
-        if ( FAILED( hr ) )
-        {
-            ELOG( "Error : ID3D12Device::CreateRootSignature() Failed." );
-            return false;
-        }
-    }
-
     // コマンドリストの生成.
     {
         hr = m_Device->CreateCommandList(
@@ -471,6 +444,8 @@ void App::Run()
 //-------------------------------------------------------------------------------------------------
 bool App::OnInit()
 {
+    /* DO_NOTHING */
+
     return true;
 }
 
@@ -479,6 +454,7 @@ bool App::OnInit()
 //-------------------------------------------------------------------------------------------------
 void App::OnTerm()
 {
+    /* DO_NOTHING */
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -486,6 +462,7 @@ void App::OnTerm()
 //-------------------------------------------------------------------------------------------------
 void App::OnFrameMove()
 {
+    /* DO_NOTHING */
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -569,12 +546,12 @@ void App::Present( u32 syncInterval )
     m_CmdQueue->Signal( m_Fence.GetPtr(), 1 );
     WaitForSingleObject( m_EventHandle, INFINITE );
 
+    // 画面に表示する.
+    m_SwapChain->Present( syncInterval, 0 );
+
     // コマンドリストとコマンドアロケータをリセットする.
     m_CmdAllocator->Reset();
     m_CmdList->Reset( m_CmdAllocator.GetPtr(), nullptr );
-
-    // 画面に表示する.
-    m_SwapChain->Present( syncInterval, 0 );
 }
 
 //-------------------------------------------------------------------------------------------------
