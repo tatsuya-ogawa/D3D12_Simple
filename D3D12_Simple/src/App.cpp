@@ -191,35 +191,12 @@ bool App::InitD3D()
     u32 w = rc.right - rc.left;
     u32 h = rc.bottom - rc.top;
 
-    // デバイス生成フラグ.
-    auto createDeviceFlags = D3D12_CREATE_DEVICE_NONE;
-#if defined(DEBUG) || defined(_DEBUG)
-    createDeviceFlags |= D3D12_CREATE_DEVICE_DEBUG;
-#endif
-
-    // ドライバータイプ.
-    std::array<D3D_DRIVER_TYPE, 4> driverTypes = { 
-        D3D_DRIVER_TYPE_HARDWARE,
-        D3D_DRIVER_TYPE_WARP,
-        D3D_DRIVER_TYPE_REFERENCE,
-        D3D_DRIVER_TYPE_SOFTWARE
-    };
-
     // デバイス生成.
-    for( size_t i=0; i<driverTypes.size(); ++i )
-    {
-        hr = D3D12CreateDevice(
-            nullptr,
-            driverTypes[i],
-            createDeviceFlags,
-            D3D_FEATURE_LEVEL_9_1,
-            D3D12_SDK_VERSION,
-            IID_ID3D12Device,
-            (void**)m_Device.GetAddress() );
-
-        if ( SUCCEEDED( hr ) )
-        { break; }
-    }
+    hr = D3D12CreateDevice(
+        nullptr,
+        D3D_FEATURE_LEVEL_11_0,
+        IID_ID3D12Device,
+        (void**)m_Device.GetAddress() );
 
     // 生成チェック.
     if ( FAILED( hr ) )
@@ -245,7 +222,7 @@ bool App::InitD3D()
        ZeroMemory( &desc, sizeof(desc) );
        desc.Type        = D3D12_COMMAND_LIST_TYPE_DIRECT;
        desc.Priority    = 0;
-       desc.Flags       = D3D12_COMMAND_QUEUE_NONE;
+       desc.Flags       = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
        hr = m_Device->CreateCommandQueue( &desc, IID_ID3D12CommandQueue, (void**)m_CmdQueue.GetAddress() );
        if ( FAILED( hr ) )
@@ -293,8 +270,8 @@ bool App::InitD3D()
         ZeroMemory( &desc, sizeof(desc) );
 
         desc.NumDescriptors = 1;
-        desc.Type           = D3D12_RTV_DESCRIPTOR_HEAP;
-        desc.Flags          = D3D12_DESCRIPTOR_HEAP_NONE;
+        desc.Type           = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        desc.Flags          = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
         hr = m_Device->CreateDescriptorHeap( &desc, IID_ID3D12DescriptorHeap, (void**)m_DescriptorHeap.GetAddress() );
         if ( FAILED( hr ) )
@@ -337,7 +314,7 @@ bool App::InitD3D()
     {
         m_EventHandle = CreateEvent( 0, FALSE, FALSE, 0 );
 
-        hr = m_Device->CreateFence( 0, D3D12_FENCE_MISC_NONE, IID_ID3D12Fence, (void**)m_Fence.GetAddress() );
+        hr = m_Device->CreateFence( 0, D3D12_FENCE_FLAG_NONE, IID_ID3D12Fence, (void**)m_Fence.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : ID3D12Device::CreateFence() Failed." );
@@ -472,12 +449,12 @@ void App::OnFrameRender()
 {
     // ビューポートを設定.
     m_CmdList->RSSetViewports( 1, &m_Viewport );
-    SetResourceBarrier( m_CmdList.GetPtr(), m_ColorTarget.GetPtr(), D3D12_RESOURCE_USAGE_PRESENT, D3D12_RESOURCE_USAGE_RENDER_TARGET );
+    SetResourceBarrier( m_CmdList.GetPtr(), m_ColorTarget.GetPtr(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     // カラーバッファをクリア.
     float clearColor[] = { 0.39f, 0.58f, 0.92f, 1.0f };
-    m_CmdList->ClearRenderTargetView( m_ColorTargetHandle, clearColor, nullptr, 0 );
-    SetResourceBarrier( m_CmdList.GetPtr(), m_ColorTarget.GetPtr(), D3D12_RESOURCE_USAGE_RENDER_TARGET, D3D12_RESOURCE_USAGE_PRESENT );
+    m_CmdList->ClearRenderTargetView( m_ColorTargetHandle, clearColor, 0, nullptr );
+    SetResourceBarrier( m_CmdList.GetPtr(), m_ColorTarget.GetPtr(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
     // 画面に表示.
     Present( 0 );
@@ -517,11 +494,11 @@ void App::SetResourceBarrier
 (
     ID3D12GraphicsCommandList* pCmdList,
     ID3D12Resource* pResource,
-    UINT stateBefore,
-    UINT stateAfter
+    D3D12_RESOURCE_STATES stateBefore,
+    D3D12_RESOURCE_STATES stateAfter
 )
 {
-    D3D12_RESOURCE_BARRIER_DESC desc = {};
+    D3D12_RESOURCE_BARRIER desc = {};
     desc.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     desc.Transition.pResource   = pResource;
     desc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
@@ -536,9 +513,11 @@ void App::SetResourceBarrier
 //-------------------------------------------------------------------------------------------------
 void App::Present( u32 syncInterval )
 {
+    ID3D12CommandList* cmdList = m_CmdList.GetPtr();
+
     // コマンドリストへの記録を終了し，コマンド実行.
     m_CmdList->Close();
-    m_CmdQueue->ExecuteCommandLists( 1, CommandListCast( m_CmdList.GetAddress() ) );
+    m_CmdQueue->ExecuteCommandLists( 1, &cmdList );
 
     // コマンドの実行の終了を待機する
     m_Fence->Signal( 0 );

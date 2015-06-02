@@ -71,8 +71,8 @@ protected:
     void SetResourceBarrier( 
         ID3D12GraphicsCommandList*  pCmdList,
         ID3D12Resource*             pResource,
-        UINT                        stateBefore,
-        UINT                        stateAfter );
+        D3D12_RESOURCE_STATES       stateBefore,
+        D3D12_RESOURCE_STATES       stateAfter );
     void Present( u32 syncInterval );
 
 private:
