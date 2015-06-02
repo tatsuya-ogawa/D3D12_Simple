@@ -234,7 +234,19 @@ bool App::InitD3D()
 
     // スワップチェインを生成.
     {
-        hr = CreateDXGIFactory( IID_IDXGIFactory, (void**)m_Factory.GetAddress() );
+        UINT flags = 0;
+
+    #if defined(DEBUG) || defined(_DEBUG)
+        ID3D12Debug* pDebug;
+        D3D12GetDebugInterface(IID_ID3D12Debug, (void**)&pDebug);
+        if (pDebug) {
+            pDebug->EnableDebugLayer();
+            pDebug->Release();
+        }
+        flags |= DXGI_CREATE_FACTORY_DEBUG;
+    #endif
+
+        hr = CreateDXGIFactory2( flags, IID_IDXGIFactory3, (void**)m_Factory.GetAddress() );
         if ( FAILED( hr ) )
         {
             ELOG( "Error : CreateDXGIFactory() Failed." );

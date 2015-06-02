@@ -10,6 +10,7 @@
 // Includes
 //-------------------------------------------------------------------------------------------------
 #include <Windows.h>
+#include <dxgi1_4.h>
 #include <d3d12.h>
 #include <asdxTypedef.h>
 #include <asdxRef.h>
@@ -83,7 +84,7 @@ private:
     asdx::RefPtr<ID3D12CommandAllocator>    m_CmdAllocator;             //!< コマンドアロケータです.
     asdx::RefPtr<ID3D12CommandQueue>        m_CmdQueue;                 //!< コマンドキューです.
     asdx::RefPtr<ID3D12GraphicsCommandList> m_CmdList;                  //!< コマンドリストです.
-    asdx::RefPtr<IDXGIFactory>              m_Factory;                  //!< DXGIファクトリーです.
+    asdx::RefPtr<IDXGIFactory3>             m_Factory;                  //!< DXGIファクトリーです.
     asdx::RefPtr<IDXGISwapChain>            m_SwapChain;                //!< スワップチェインです.
     asdx::RefPtr<ID3D12DescriptorHeap>      m_DescriptorHeap;           //!< デスクリプターヒープです.
     asdx::RefPtr<ID3D12Resource>            m_ColorTarget;              //!< カラーターゲットのリソースです.
