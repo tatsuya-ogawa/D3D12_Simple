@@ -51,7 +51,7 @@ App::App()
 : m_hInst           ( nullptr )
 , m_hWnd            ( nullptr )
 , m_BufferCount     ( 2 )
-, m_SwapChainFormat ( DXGI_FORMAT_R8G8B8A8_UNORM_SRGB )
+, m_SwapChainFormat ( DXGI_FORMAT_R8G8B8A8_UNORM )  // SRGBだとエラーが発生したので暫定的に...
 , m_EventHandle     ( nullptr )
 { /* DO_NOTHING */ }
 
@@ -191,9 +191,36 @@ bool App::InitD3D()
     u32 w = rc.right - rc.left;
     u32 h = rc.bottom - rc.top;
 
+    UINT flags = 0;
+
+#if defined(DEBUG) || defined(_DEBUG)
+    ID3D12Debug* pDebug;
+    D3D12GetDebugInterface(IID_ID3D12Debug, (void**)&pDebug);
+    if (pDebug)
+    {
+        pDebug->EnableDebugLayer();
+        pDebug->Release();
+    }
+    flags |= DXGI_CREATE_FACTORY_DEBUG;
+#endif
+
+    hr = CreateDXGIFactory2(flags, IID_IDXGIFactory3, (void**)m_Factory.GetAddress());
+    if (FAILED(hr))
+    {
+        ELOG("Error : CreateDXGIFactory() Failed.");
+        return false;
+    }
+
+    hr = m_Factory->EnumAdapters(0, m_Adapter.GetAddress());
+    if (FAILED(hr))
+    {
+        ELOG("Error : IDXGIFactory::EnumAdapters() Failed.");
+        return false;
+    }
+
     // デバイス生成.
     hr = D3D12CreateDevice(
-        nullptr,
+        m_Adapter.GetPtr(),
         D3D_FEATURE_LEVEL_11_0,
         IID_ID3D12Device,
         (void**)m_Device.GetAddress() );
@@ -234,25 +261,6 @@ bool App::InitD3D()
 
     // スワップチェインを生成.
     {
-        UINT flags = 0;
-
-    #if defined(DEBUG) || defined(_DEBUG)
-        ID3D12Debug* pDebug;
-        D3D12GetDebugInterface(IID_ID3D12Debug, (void**)&pDebug);
-        if (pDebug) {
-            pDebug->EnableDebugLayer();
-            pDebug->Release();
-        }
-        flags |= DXGI_CREATE_FACTORY_DEBUG;
-    #endif
-
-        hr = CreateDXGIFactory2( flags, IID_IDXGIFactory3, (void**)m_Factory.GetAddress() );
-        if ( FAILED( hr ) )
-        {
-            ELOG( "Error : CreateDXGIFactory() Failed." );
-            return false;
-        }
-
         DXGI_SWAP_CHAIN_DESC desc;
         ZeroMemory( &desc, sizeof(desc) );
         desc.BufferCount                        = m_BufferCount;
@@ -266,6 +274,8 @@ bool App::InitD3D()
         desc.SampleDesc.Count                   = 1;
         desc.SampleDesc.Quality                 = 0;
         desc.Windowed                           = TRUE;
+        desc.SwapEffect                         = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+        desc.Flags                              = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
         // アダプター単位の処理にマッチするのは m_Device ではなく m_CmdQueue　なので，m_CmdQueue　を第一引数として渡す.
         hr = m_Factory->CreateSwapChain( m_CmdQueue.GetPtr(), &desc, m_SwapChain.GetAddress() );
