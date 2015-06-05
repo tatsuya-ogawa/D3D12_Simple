@@ -204,7 +204,7 @@ bool App::InitD3D()
     flags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
 
-    hr = CreateDXGIFactory2(flags, IID_IDXGIFactory3, (void**)m_Factory.GetAddress());
+    hr = CreateDXGIFactory2(flags, IID_IDXGIFactory4, (void**)m_Factory.GetAddress());
     if (FAILED(hr))
     {
         ELOG("Error : CreateDXGIFactory() Failed.");
@@ -228,8 +228,28 @@ bool App::InitD3D()
     // 生成チェック.
     if ( FAILED( hr ) )
     {
-        ELOG( "Error : D3D12CreateDevice()Failed." );
-        return false;
+        // Warpアダプターで再トライ.
+        m_Adapter.Reset();
+        m_Device.Reset();
+
+        hr = m_Factory->EnumWarpAdapter(IID_PPV_ARGS(m_Adapter.GetAddress()));
+        if (FAILED(hr))
+        {
+            ELOG("Error : IDXGIFactory::EnumWarpAdapter() Failed.");
+            return false;
+        }
+
+        // デバイス生成.
+        hr = D3D12CreateDevice(
+            m_Adapter.GetPtr(),
+            D3D_FEATURE_LEVEL_11_0,
+            IID_ID3D12Device,
+            (void**)m_Device.GetAddress());
+        if (FAILED(hr))
+        {
+            ELOG("Error: D3D12CreateDevice() Failed.");
+            return false;
+        }
     }
 
     // コマンドアロケータを生成.

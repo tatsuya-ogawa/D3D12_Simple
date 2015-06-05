@@ -85,7 +85,7 @@ private:
     asdx::RefPtr<ID3D12CommandQueue>        m_CmdQueue;                 //!< コマンドキューです.
     asdx::RefPtr<ID3D12GraphicsCommandList> m_CmdList;                  //!< コマンドリストです.
     asdx::RefPtr<IDXGIAdapter>              m_Adapter;                  //!< アダプターです.
-    asdx::RefPtr<IDXGIFactory3>             m_Factory;                  //!< DXGIファクトリーです.
+    asdx::RefPtr<IDXGIFactory4>             m_Factory;                  //!< DXGIファクトリーです.
     asdx::RefPtr<IDXGISwapChain>            m_SwapChain;                //!< スワップチェインです.
     asdx::RefPtr<ID3D12DescriptorHeap>      m_DescriptorHeap;           //!< デスクリプターヒープです.
     asdx::RefPtr<ID3D12Resource>            m_ColorTarget;              //!< カラーターゲットのリソースです.
